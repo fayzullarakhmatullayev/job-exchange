@@ -1,7 +1,7 @@
 <template>
   <div class="card">
     <h2>{{ task.title }}</h2>
-    <p><strong>Статус</strong>: <AppStatus :type="status" /></p>
+    <p><strong>Статус</strong>: <AppStatus :type="task.status" /></p>
     <p><strong>Дэдлайн</strong>: {{ task.date }}</p>
     <p><strong>Описание</strong>: {{ task.text }}</p>
     <div>
@@ -15,28 +15,35 @@
 </template>
 
 <script>
-import AppStatus from "../components/AppStatus";
+import AppStatus from "@/components/AppStatus";
+import AppLoader from "@/components/AppLoader";
 import { useRouter } from "vue-router";
 import { useStore } from "vuex";
-import { computed } from "@vue/runtime-core";
+import { computed, onMounted } from "@vue/runtime-core";
 export default {
-  components: { AppStatus },
+  name: "task",
+  components: { AppStatus, AppLoader },
   setup() {
     const { currentRoute } = useRouter();
-    const id = currentRoute.value.params.id;
+    const key = currentRoute.value.params.id;
+    const status = computed(() => store.getters["status"]);
+    const task = computed(() => store.getters.task);
 
     const store = useStore();
     async function getStatus(status) {
       const payload = {
-        ...JSON.parse(localStorage.getItem("task")),
+        ...task.value,
+        key: key,
         status: status,
       };
-      await store.dispatch("changeStatus", payload);
+      store.dispatch("changeStatus", payload);
     }
-    const status = computed(() => store.getters["status"]);
+    onMounted(async () => {
+      await store.dispatch("openTask", key);
+    });
+
     return {
-      id,
-      task: JSON.parse(localStorage.getItem("task")),
+      task,
       status,
       getStatus,
     };

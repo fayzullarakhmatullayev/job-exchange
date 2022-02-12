@@ -1,8 +1,6 @@
 <template>
   <nav class="navbar">
-    <h3>
-      Freelance
-    </h3>
+    <router-link to="/"><h3>Freelance</h3></router-link>
 
     <ul class="navbar-menu">
       <li>
@@ -16,11 +14,7 @@
 </template>
 
 <script>
-export default {
-
-}
+export default {};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

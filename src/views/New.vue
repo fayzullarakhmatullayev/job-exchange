@@ -34,13 +34,13 @@ import { ref, computed } from "vue";
 import { useStore } from "vuex";
 import { useRouter } from "vue-router";
 export default {
+  name: "new",
   setup() {
     const store = useStore();
     const router = useRouter();
     const title = ref("");
     const date = ref("");
     const text = ref("");
-
     const submitHandler = async () => {
       const payload = {
         id: Date.now(),
@@ -48,7 +48,9 @@ export default {
         date: date.value,
         text: text.value,
         status:
-          date.value > new Date().toLocaleTimeString() ? "active" : "cancelled",
+          new Date(date).toLocaleDateString() > new Date().toLocaleDateString()
+            ? "active"
+            : "cancelled",
       };
       await store.dispatch("createTask", payload);
       router.push("/");

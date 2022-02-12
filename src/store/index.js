@@ -5,35 +5,37 @@ export default createStore({
   state: {
     jobs: [],
     isEmpty: false,
+    task: [],
     status: "",
   },
   mutations: {
-    SET_STATUS(state, status) {
-      localStorage.setItem("status", status);
-      state.status = status;
+    UPDATE_JOBS(state, payload) {
+      state.jobs = payload;
+    },
+    SET_JOBS(state, jobs) {
+      const newJobs = Object.keys(jobs).map((key) => {
+        return {
+          key: key,
+          ...jobs[key],
+        };
+      });
+      state.jobs = newJobs;
+    },
+    SET_TASK(state, task) {
+      state.task = task;
     },
   },
   actions: {
-    async getTasks({ state }) {
-      try {
-        const { data } = await axios(
-          "https://vue-job-exchange-default-rtdb.europe-west1.firebasedatabase.app/task.json"
-        );
-        if (data === null) {
-          state.isEmpty = true;
-        } else {
-          state.isEmpty = false;
-          const res = Object.keys(data).map((key) => {
-            return {
-              key: key,
-              ...data[key],
-            };
-          });
-          state.jobs = res;
-        }
-      } catch (error) {
-        console.warn(error.message);
-      }
+    async getTasks({ state, commit }) {
+      await axios(
+        "https://vue-job-exchange-default-rtdb.europe-west1.firebasedatabase.app/task.json"
+      )
+        .then((res) => {
+          commit("SET_JOBS", res.data);
+        })
+        .catch((e) => {
+          console.warn(e);
+        });
     },
     async createTask({ _ }, payload) {
       try {
@@ -46,32 +48,43 @@ export default createStore({
       }
     },
     async changeStatus({ state, commit }, payload) {
+      console.log(payload);
       try {
-        await axios.put(
-          `https://vue-job-exchange-default-rtdb.europe-west1.firebasedatabase.app/task/${payload.key}.json`,
-          payload
-        );
-        state.task = payload;
-        commit("SET_STATUS", payload.status);
+        await axios
+          .put(
+            `https://vue-job-exchange-default-rtdb.europe-west1.firebasedatabase.app/task/${payload.key}.json`,
+            payload
+          )
+          .then((res) => {
+            commit("SET_TASK", res.data);
+          });
       } catch (error) {
         console.warn(error.message);
       }
     },
+    async openTask({ commit }, key) {
+      await axios
+        .get(
+          `https://vue-job-exchange-default-rtdb.europe-west1.firebasedatabase.app/task/${key}.json`
+        )
+        .then((res) => {
+          commit("SET_TASK", res.data);
+        })
+        .catch((e) => console.warn(e));
+    },
   },
   getters: {
     jobs(state) {
-      if (state.jobs) {
-        return state.jobs.sort((a, b) => {
-          if (a.id > b.id) return -1;
-          return 1;
-        });
-      }
+      return state.jobs;
     },
     activeCounter(state) {
       return state.jobs.filter((job) => job.status === "active").length;
     },
     status(state) {
       return state.status;
+    },
+    task(state) {
+      return state.task;
     },
   },
 });

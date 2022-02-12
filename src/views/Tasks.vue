@@ -21,7 +21,7 @@
         </strong>
       </p>
       <div class="wrapper">
-        <button class="btn primary" @click="openTask(task.id, task)">
+        <button class="btn primary" @click="openTask(task.key)">
           Посмотреть
         </button>
       </div>
@@ -37,6 +37,7 @@ import { useRouter } from "vue-router";
 import AppLoader from "../components/AppLoader.vue";
 
 export default {
+  name: "tasks",
   components: { AppStatus, AppLoader },
   setup() {
     const store = useStore();
@@ -46,9 +47,10 @@ export default {
     });
 
     const jobs = computed(() => store.getters["jobs"]);
-    const openTask = async (id, task) => {
-      router.push(`/task/${id}`);
-      localStorage.setItem("task", JSON.stringify(task));
+    const openTask = async (key) => {
+      store.dispatch("openTask", key).then(() => {
+        router.push(`/task/${key}`);
+      });
     };
     const statusLength = computed(() => store.getters["activeCounter"]);
     return {
